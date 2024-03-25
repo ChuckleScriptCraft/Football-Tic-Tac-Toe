@@ -130,5 +130,3 @@ check_player_club_wikipedia <- function(player, guess){
   }
   
 }
-
-
