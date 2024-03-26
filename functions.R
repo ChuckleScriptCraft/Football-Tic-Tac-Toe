@@ -135,11 +135,6 @@ check_player_club_wikipedia <- function(player, guess){
   
 }
 
-
-
-check_player_club_tm("John Stones", "Everton")
-
-
 # TransferMarkt Club Checker
 ## Requires Selenium Server
 ### Requires User to Check 'accept and continue'
