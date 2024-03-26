@@ -3,6 +3,10 @@ library(tidyverse)
 library(worldfootballR)
 library(rvest)
 library(snakecase)
+library(RSelenium)
+library(RSelenium)
+library(httr)
+library(netstat)
 
 
 # Get mappings
@@ -115,6 +119,91 @@ check_player_club_wikipedia <- function(player, guess){
     pull(Team) %>% trimws() %>% 
     unique()
   
+  
+  # Does guess match?
+  match <- to_title_case(guess) %in% clubs
+  
+  # If no match:
+  if(!match){
+    cat(player, "has not played for", guess, "\nHe has played for:",
+        paste(clubs, collapse = ", "),"\n\n")
+    
+    return(F)
+  } else if(match){
+    return(T)
+  }
+  
+}
+
+
+
+check_player_club_tm("John Stones", "Everton")
+
+
+# TransferMarkt Club Checker
+## Requires Selenium Server
+### Requires User to Check 'accept and continue'
+check_player_club_tm <- function(player, guess){
+  
+  # Make sure player case matches mapping
+  player = to_title_case(player)
+  
+  # Get URL of player
+  player_tm = map_plyr %>% filter(PlayerFBref == player) %>% 
+    pull(UrlTmarkt)
+  
+  # Stop under condition
+  if(length(player_fb) == 0){
+    stop("Unknown Player Name")
+  }
+  
+  # Connect to Selenium Server
+  ## Connection to firefox client
+  rD <- rsDriver(browser = "firefox",
+                 chromever = NULL,
+                 port= 1000L,
+                 verbose = FALSE)
+  
+  remDr <- rD[["client"]]
+  
+  ## Navigate to the webpage
+  remDr$navigate(player_tm)
+  
+  ## Wait for the table to load
+  remDr$executeScript("var tableElement = document.querySelector('.tm-transfer-history'); 
+                       tableElement.scrollIntoView();")
+  
+  ## Let element load
+  Sys.sleep(4)
+  
+  # Get the page source
+  page_source <- remDr$getPageSource()
+  
+  ## Get table
+  player_table_raw <- read_html(page_source[[1]]) %>%
+    html_nodes(".tm-transfer-history") %>%
+    html_text2()
+  
+  ## Stop Server
+  remDr$close()
+  rD[["server"]]$stop()
+  
+  
+  # Repair table
+  ## Split text into lines
+  data <- strsplit(player_table_raw, "\n")[[1]]
+  
+  ## Remove table title, cumulative value at bottom
+  data_shaped <- data[-c(1, length(data), length(data) -1)]
+  
+  # Clean into dataframe and set titles
+  transfer_data <- matrix(data_shaped, ncol = 6, byrow = T) %>% 
+    as.data.frame() %>% 
+    setNames(.[1, ]) %>%   
+    slice(-1)
+  
+  # Find all unique clubs player has left or joined
+  clubs <- unique(c(transfer_data$Left, transfer_data$Joined))
   
   # Does guess match?
   match <- to_title_case(guess) %in% clubs
