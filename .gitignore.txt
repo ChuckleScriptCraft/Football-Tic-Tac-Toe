@@ -1,7 +1,0 @@
-
-.pyc
-.vscode/
-.RData
-.RHistory
-.log
-.__pycache__/
