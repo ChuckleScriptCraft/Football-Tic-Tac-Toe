@@ -4,4 +4,4 @@
 .RHistory
 .log
 .__pycache__
-.secret/
+secret/
