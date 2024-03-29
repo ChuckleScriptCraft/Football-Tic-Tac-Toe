@@ -10,7 +10,9 @@ import sys
 sys.path.insert(1, '../secret/')
 
 import headers
-print(headers.headers)
+
+# Import lookup for tmarkt url
+url_lookup = pd.read_csv('../data/url_lookup.csv', encoding='latin-1')
 
 
 # Get player's clubs from fbref
@@ -54,7 +56,42 @@ def get_player_clubs_fbref(player_name) :
     index_of_blank = squad.index('') if '' in squad else len(squad)
     
     # Create a set of club names excluding the first two elements
-    modified_list = set(squad[2:index_of_blank])
+    club_names = set(squad[2:index_of_blank])
     
-    return(modified_list)  
+    return(club_names)  
 
+
+# Get player's clubs from transfermarkt
+
+def get_player_clubs_tmarkt(player_name) :
+    """
+    Retrieve unique club names from a player's transfer history on Transfermarkt.
+
+    Parameters:
+        player_name (str): The name of the player.
+
+    Returns:
+        set: A set containing unique club names from the player's transfer history.
+    """
+    
+    # Retrieve URL from the url_lookup DataFrame for the given player name
+    # Convert player_name to title case for consistency 
+    url = url_lookup[url_lookup['name'] == player_name.title()]['url']
+    url = '\n'.join(url)
+    
+    ## Retrieve player ID from the URL
+    player_id = url.split('/')[-1]
+    
+    # Call Transfermarkt API to get the player's transfer history
+    response = requests.get(f'https://www.transfermarkt.co.uk/ceapi/transferHistory/list/{player_id}', headers=headers.headers)
+    
+    # Convert the response to JSON format
+    transfer_data = response.json()
+    
+    # Extract unique club names from the player's transfer history
+    club_names = set()
+    for transfer in transfer_data['transfers']:
+        club_names.add(transfer['from']['clubName'])
+        club_names.add(transfer['to']['clubName'])
+        
+    return(club_names)
