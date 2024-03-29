@@ -1,8 +1,19 @@
 # Packages
 import requests
 from bs4 import BeautifulSoup
+import re
+import pandas as pd
+import sys
+
+# Collect headers for interacting with TM
+
+sys.path.insert(1, '../secret/')
+
+import headers
+print(headers.headers)
 
 
+# Get player's clubs from fbref
 def get_player_clubs_fbref(player_name) :
     
     """
