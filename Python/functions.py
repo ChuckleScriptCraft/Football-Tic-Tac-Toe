@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import pandas as pd
 import sys
+from fuzzywuzzy import fuzz
 
 # Collect headers for interacting with TM
 
@@ -146,3 +147,46 @@ def get_top25_clubs_tmarkt() :
     clubs = [text.replace("United", "Utd") for text in clubs]
     
     return(clubs)
+
+# Does TransferMarkt player history match the arbitrary club
+
+def return_club_match(player_clubs, club1, club2):
+    """
+    Check if both clubs are present in the list of player clubs with a similarity score of at least 70.
+
+    Args:
+        player_clubs (list): A set or list containing the player's clubs.
+        club1 (str): The first club to compare.
+        club2 (str): The second club to compare.
+
+    Returns:
+        bool: True if both clubs are present in the player's clubs list with a similarity score of at least 70, 
+        False otherwise.
+    """
+    # Create a list containing the two clubs to compare
+    club_intersection = [club1, club2]
+    
+    # Convert player_clubs to a list if it's not already
+    player_club_list = list(player_clubs)
+    
+    # Initialize an empty list to store match results
+    match = []
+    
+    # Iterate over the clubs to compare
+    for j in club_intersection:
+        max_ratio = []
+        # Calculate similarity scores for each player's club
+        for i in player_club_list:
+            similarity_score = fuzz.ratio(j, i)
+            max_ratio.append(similarity_score)
+        # Check if the maximum similarity score is less than 70
+        if max(max_ratio) < 70:
+            match.append(False)
+        else:
+            match.append(True)
+    
+    # Check if all match results are True
+    if all(match):
+        return True
+    else:
+        return False
