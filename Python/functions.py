@@ -95,3 +95,31 @@ def get_player_clubs_tmarkt(player_name) :
         club_names.add(transfer['to']['clubName'])
         
     return(club_names)
+
+# Get list of all clubs in Europe's top 5 leauges 
+def get_top5_league_clubs():
+    """
+    Function to scrape the names of top 5 European league clubs from the provided URL.
+
+    Returns:
+        squad_data (list): A list containing the names of the clubs from the 'squad' column.
+    """
+    url = "https://fbref.com/en/comps/Big5/Big-5-European-Leagues-Stats"
+    
+    # Send a GET request to the URL and parse the HTML content
+    response = requests.get(url, headers=headers.headers)
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    # Find the table with the specified class
+    table = soup.select_one('#big5_table > tbody')
+
+    # Extract data from the 'squad' column
+    squad_data = []
+    rows = table.find_all('tr')
+    for row in rows:
+        # Find the 'td' element in the first column (index 0)
+        squad_cell = row.find_all('td')[0]
+        squad_value = squad_cell.get_text(strip=True)  # Extract the text of the cell
+        squad_data.append(squad_value)
+        
+    return squad_data
