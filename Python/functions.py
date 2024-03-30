@@ -123,3 +123,26 @@ def get_top5_league_clubs():
         squad_data.append(squad_value)
         
     return squad_data
+
+# Get list of 25 most valuable clubs according to TransferMarkt
+def get_top25_clubs_tmarkt() :
+    
+    url = 'https://www.transfermarkt.co.uk/spieler-statistik/wertvollstemannschaften/marktwertetop'
+    # Send a GET request to the URL
+    response = requests.get(url, headers = headers.headers)
+
+    # Parse the HTML content
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find the specified element
+    element = soup.select_one('#yw1 > table > tbody')
+    
+    clubs = re.findall(r'\/saison_id\/2023\" title=\"(.*?)\">', str(element))
+    clubs = [text.replace("&amp;", "and") for text in clubs]
+    clubs = [text.replace("FC ", "") for text in clubs]
+    clubs = [text.replace(" FC", "") for text in clubs]    
+    clubs = [text.replace("Saint-Germain", "SG") for text in clubs]
+    clubs = [text.replace("Hotspur", "") for text in clubs]
+    clubs = [text.replace("United", "Utd") for text in clubs]
+    
+    return(clubs)
